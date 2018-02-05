@@ -26,6 +26,9 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * NameServer 配置相关类，一个简单的POJO类，定义了配置存储的位置
+ */
 public class NamesrvConfig {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 

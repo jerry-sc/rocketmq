@@ -20,6 +20,9 @@ package org.apache.rocketmq.remoting.netty;
 import io.netty.handler.ssl.SslContext;
 import org.apache.rocketmq.remoting.common.TlsMode;
 
+/**
+ * 关于传输安全TLS的相关配置项
+ */
 public class TlsSystemConfig {
     public static final String TLS_SERVER_MODE = "tls.server.mode";
     public static final String TLS_ENABLE = "tls.enable";

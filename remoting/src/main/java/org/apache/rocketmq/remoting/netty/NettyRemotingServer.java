@@ -154,6 +154,10 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         }
     }
 
+
+    /**
+     * 是否使用Epoll，该方式会带来更大的性能
+     */
     private boolean useEpoll() {
         return RemotingUtil.isLinuxPlatform()
             && nettyServerConfig.isUseEpollNativeSelector()

@@ -47,26 +47,32 @@ public class NamesrvStartup {
     }
 
     public static NamesrvController main0(String[] args) {
+        // 设置当前版本环境变量
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
         try {
             //PackageConflictDetect.detectFastjson();
 
+            // 设置命令行支持的参数，用于后面解析
             Options options = ServerUtil.buildCommandlineOptions(new Options());
             commandLine = ServerUtil.parseCmdLine("mqnamesrv", args, buildCommandlineOptions(options), new PosixParser());
             if (null == commandLine) {
                 System.exit(-1);
                 return null;
             }
-
+            // name server 配置
             final NamesrvConfig namesrvConfig = new NamesrvConfig();
+            // netty 配置
             final NettyServerConfig nettyServerConfig = new NettyServerConfig();
+            // name server 在9876端口启动
             nettyServerConfig.setListenPort(9876);
             if (commandLine.hasOption('c')) {
+                // 如果有外部的name server配置文件，那么加载该文件
                 String file = commandLine.getOptionValue('c');
                 if (file != null) {
                     InputStream in = new BufferedInputStream(new FileInputStream(file));
                     properties = new Properties();
                     properties.load(in);
+                    // 配置文件中的value都是基本类型
                     MixAll.properties2Object(properties, namesrvConfig);
                     MixAll.properties2Object(properties, nettyServerConfig);
 
@@ -77,6 +83,7 @@ public class NamesrvStartup {
                 }
             }
 
+            // 打印配置信息，并结束
             if (commandLine.hasOption('p')) {
                 MixAll.printObjectProperties(null, namesrvConfig);
                 MixAll.printObjectProperties(null, nettyServerConfig);
@@ -90,6 +97,7 @@ public class NamesrvStartup {
                 System.exit(-2);
             }
 
+            // 通过代码方式设置日志配置
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(lc);

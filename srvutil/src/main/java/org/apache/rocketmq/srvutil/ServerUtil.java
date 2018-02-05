@@ -24,6 +24,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+/**
+ * 用于与命令行参数有关的工具类
+ */
 public class ServerUtil {
 
     public static Options buildCommandlineOptions(final Options options) {
@@ -46,6 +49,7 @@ public class ServerUtil {
         hf.setWidth(110);
         CommandLine commandLine = null;
         try {
+            // 解析命令行参数
             commandLine = parser.parse(options, args);
             if (commandLine.hasOption('h')) {
                 hf.printHelp(appName, options, true);

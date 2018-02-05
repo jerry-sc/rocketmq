@@ -27,10 +27,16 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 
+/**
+ * 配置类，通过整合所有配置对象到该类中
+ */
 public class Configuration {
 
     private final Logger log;
 
+    /**
+     * 保存所有配置对象
+     */
     private List<Object> configObjectList = new ArrayList<Object>(4);
     private String storePath;
     private boolean storePathFromConfig = false;
@@ -39,6 +45,7 @@ public class Configuration {
     private DataVersion dataVersion = new DataVersion();
     private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     /**
+     * 汇总所有的配置信息到一个属性集中，便于管理
      * All properties include configs in object and extend properties.
      */
     private Properties allConfigs = new Properties();
@@ -52,6 +59,7 @@ public class Configuration {
         if (configObjects == null || configObjects.length == 0) {
             return;
         }
+        // 合并所有配置
         for (Object configObject : configObjects) {
             registerConfig(configObject);
         }

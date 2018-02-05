@@ -314,6 +314,11 @@ public class MixAll {
         return properties;
     }
 
+    /**
+     * 利用反射将配置文件中的属性值加入到name server 的两个配置对象中去
+     * @param p fa
+     * @param object
+     */
     public static void properties2Object(final Properties p, final Object object) {
         Method[] methods = object.getClass().getMethods();
         for (Method method : methods) {
@@ -323,6 +328,7 @@ public class MixAll {
                     String tmp = mn.substring(4);
                     String first = mn.substring(3, 4);
 
+                    // 获得属性名称
                     String key = first.toLowerCase() + tmp;
                     String property = p.getProperty(key);
                     if (property != null) {

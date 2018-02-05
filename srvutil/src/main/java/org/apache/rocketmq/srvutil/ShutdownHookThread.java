@@ -44,6 +44,7 @@ public class ShutdownHookThread extends Thread {
     }
 
     /**
+     * 用来记录MQ退出的时间
      * Thread run method.
      * Invoke when the jvm shutdown.
      * 1. count the invocation times.

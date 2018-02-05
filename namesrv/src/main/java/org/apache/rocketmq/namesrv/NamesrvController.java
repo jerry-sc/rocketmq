@@ -35,6 +35,9 @@ import org.apache.rocketmq.remoting.netty.NettyServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 整个name server 生命周期控制类，并且负责初始化name server需要用到的所有组件
+ */
 public class NamesrvController {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
@@ -83,6 +86,7 @@ public class NamesrvController {
 
             @Override
             public void run() {
+                // 每隔10s扫描
                 NamesrvController.this.routeInfoManager.scanNotActiveBroker();
             }
         }, 5, 10, TimeUnit.SECONDS);
@@ -91,6 +95,7 @@ public class NamesrvController {
 
             @Override
             public void run() {
+                // 每隔10s答应KV信息
                 NamesrvController.this.kvConfigManager.printAllPeriodically();
             }
         }, 1, 10, TimeUnit.MINUTES);
@@ -113,6 +118,9 @@ public class NamesrvController {
         this.remotingServer.start();
     }
 
+    /**
+     * 无论是正常退出，还是异常退出，都要确保资源释放
+     */
     public void shutdown() {
         this.remotingServer.shutdown();
         this.remotingExecutor.shutdown();
