@@ -72,6 +72,7 @@ public class BrokerConfig {
     @ImportantField
     private boolean rejectTransactionMessage = false;
     @ImportantField
+    // 是否允许以http服务的方式获取 name server地址列表
     private boolean fetchNamesrvAddrByAddressServer = false;
     private int sendThreadPoolQueueCapacity = 10000;
     private int pullThreadPoolQueueCapacity = 100000;

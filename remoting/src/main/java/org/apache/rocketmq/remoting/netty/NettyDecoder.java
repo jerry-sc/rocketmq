@@ -26,13 +26,21 @@ import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 使用基于字节流长度的解码器，来截取指定长度的消息
+ */
 public class NettyDecoder extends LengthFieldBasedFrameDecoder {
     private static final Logger log = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
 
+    /**
+     * rocketmq的设计非常巧妙：
+     * 消息的最大长度为2的24次方，正好占用3个字节，int共4字节，将int的最高位1字节表示成序列化的使用的方式
+     */
     private static final int FRAME_MAX_LENGTH =
         Integer.parseInt(System.getProperty("com.rocketmq.remoting.frameMaxLength", "16777216"));
 
     public NettyDecoder() {
+        // 通过构造函数指定哪部分是长度信息，这里指定了偏移量为0，长度为4字节的为长度信息
         super(FRAME_MAX_LENGTH, 0, 4, 0, 4);
     }
 

@@ -40,14 +40,23 @@ import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * topic 相关配置
+ */
 public class TopicConfigManager extends ConfigManager {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final long LOCK_TIMEOUT_MILLIS = 3000;
     private transient final Lock lockTopicConfigTable = new ReentrantLock();
 
+    /**
+     * 管理所有的topic集合
+     */
     private final ConcurrentMap<String, TopicConfig> topicConfigTable =
         new ConcurrentHashMap<String, TopicConfig>(1024);
     private final DataVersion dataVersion = new DataVersion();
+    /**
+     * 保存系统自建的一些topic
+     */
     private final Set<String> systemTopicList = new HashSet<String>();
     private transient BrokerController brokerController;
 
@@ -56,6 +65,7 @@ public class TopicConfigManager extends ConfigManager {
 
     public TopicConfigManager(BrokerController brokerController) {
         this.brokerController = brokerController;
+        // 初始化时，会创建一些默认的topic，有的用于测试等
         {
             // MixAll.SELF_TEST_TOPIC
             String topic = MixAll.SELF_TEST_TOPIC;
@@ -369,6 +379,9 @@ public class TopicConfigManager extends ConfigManager {
         }
     }
 
+    /**
+     * 序列化当前所有的topic，用于向name server注册
+     */
     public TopicConfigSerializeWrapper buildTopicConfigSerializeWrapper() {
         TopicConfigSerializeWrapper topicConfigSerializeWrapper = new TopicConfigSerializeWrapper();
         topicConfigSerializeWrapper.setTopicConfigTable(this.topicConfigTable);

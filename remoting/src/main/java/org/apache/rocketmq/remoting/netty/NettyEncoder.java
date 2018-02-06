@@ -26,6 +26,9 @@ import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 每个消息发送前，先进行
+ */
 public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
     private static final Logger log = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
 
@@ -33,6 +36,7 @@ public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
     public void encode(ChannelHandlerContext ctx, RemotingCommand remotingCommand, ByteBuf out)
         throws Exception {
         try {
+            // 设置消息头信息
             ByteBuffer header = remotingCommand.encodeHeader();
             out.writeBytes(header);
             byte[] body = remotingCommand.getBody();

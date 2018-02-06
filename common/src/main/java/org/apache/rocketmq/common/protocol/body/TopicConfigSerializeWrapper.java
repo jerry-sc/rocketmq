@@ -23,6 +23,9 @@ import org.apache.rocketmq.common.DataVersion;
 import org.apache.rocketmq.common.TopicConfig;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+/**
+ * 封装所有topic的信息，并序列化，用于向name server注册的信息
+ */
 public class TopicConfigSerializeWrapper extends RemotingSerializable {
     private ConcurrentMap<String, TopicConfig> topicConfigTable =
         new ConcurrentHashMap<String, TopicConfig>();

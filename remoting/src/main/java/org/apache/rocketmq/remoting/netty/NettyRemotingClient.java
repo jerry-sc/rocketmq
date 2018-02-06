@@ -75,12 +75,26 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 
     private final NettyClientConfig nettyClientConfig;
     private final Bootstrap bootstrap = new Bootstrap();
+    /**
+     * netty worker event loop group
+     */
     private final EventLoopGroup eventLoopGroupWorker;
+
+    /**
+     * 下述两个为一组，用于为channelTable添加或者删除元素
+     */
     private final Lock lockChannelTables = new ReentrantLock();
+    /**
+     * key：name server 地址
+     * value：客户端连接的一个封装
+     */
     private final ConcurrentMap<String /* addr */, ChannelWrapper> channelTables = new ConcurrentHashMap<String, ChannelWrapper>();
 
     private final Timer timer = new Timer("ClientHouseKeepingService", true);
 
+    /**
+     * 这里使用原子引用，防止并发更新的情况
+     */
     private final AtomicReference<List<String>> namesrvAddrList = new AtomicReference<List<String>>();
     private final AtomicReference<String> namesrvAddrChoosed = new AtomicReference<String>();
     private final AtomicInteger namesrvIndex = new AtomicInteger(initValueIndex());
@@ -150,6 +164,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 
     @Override
     public void start() {
+        // netty中耗时操作线程池
         this.defaultEventExecutorGroup = new DefaultEventExecutorGroup(
             nettyClientConfig.getClientWorkerThreads(),
             new ThreadFactory() {
@@ -184,6 +199,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                         defaultEventExecutorGroup,
                         new NettyEncoder(),
                         new NettyDecoder(),
+                        // 当指定时间内，没有read或者write事件发生时，触发心跳检测
                         new IdleStateHandler(0, 0, nettyClientConfig.getClientChannelMaxIdleTimeSeconds()),
                         new NettyConnectManageHandler(),
                         new NettyClientHandler());
@@ -334,8 +350,10 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
     @Override
     public void updateNameServerAddressList(List<String> addrs) {
         List<String> old = this.namesrvAddrList.get();
+        // 是否需要更新
         boolean update = false;
 
+        // 为了加快比较决定是否需要更新，使用了不同策略，目的就是为了更加快速
         if (!addrs.isEmpty()) {
             if (null == old) {
                 update = true;
@@ -350,6 +368,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
             }
 
             if (update) {
+                // 随机打乱，负载均衡
                 Collections.shuffle(addrs);
                 log.info("name server address updated. NEW : {} , OLD: {}", addrs, old);
                 this.namesrvAddrList.set(addrs);
@@ -595,6 +614,9 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         this.callbackExecutor = callbackExecutor;
     }
 
+    /**
+     * 客户端连接的一个封装
+     */
     static class ChannelWrapper {
         private final ChannelFuture channelFuture;
 
@@ -627,6 +649,11 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         }
     }
 
+    /**
+     * 客户端连接管理handler,一个重要目的，在于对连接状态的监听，然后处理一些自定义事件处理器。
+     *
+     * rocketmq 在设计时，并没有直接在handler中直接进行事件处理，而是把该状态改变封装成一个事件，放入待处理队列中，交给队列处理
+     */
     class NettyConnectManageHandler extends ChannelDuplexHandler {
         @Override
         public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress,

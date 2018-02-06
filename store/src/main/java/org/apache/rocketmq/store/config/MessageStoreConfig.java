@@ -114,6 +114,9 @@ public class MessageStoreConfig {
     private int maxMsgsNumBatch = 64;
     @ImportantField
     private boolean messageIndexSafe = false;
+    /**
+     * HA 时的监听端口，用于master slave之间的通信
+     */
     private int haListenPort = 10912;
     private int haSendHeartbeatInterval = 1000 * 5;
     private int haHousekeepingInterval = 1000 * 20;
@@ -122,6 +125,10 @@ public class MessageStoreConfig {
     private String haMasterAddress = null;
     private int haSlaveFallbehindMax = 1024 * 1024 * 256;
     @ImportantField
+    /**
+     * 共有三种broker角色：ASYNC_MASTER、SYNC_MASTER、SLAVE
+     * 默认为ASYNC_MASTER
+     */
     private BrokerRole brokerRole = BrokerRole.ASYNC_MASTER;
     @ImportantField
     private FlushDiskType flushDiskType = FlushDiskType.ASYNC_FLUSH;

@@ -29,10 +29,17 @@ import org.apache.rocketmq.common.utils.HttpTinyClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 根据官网介绍，有四种方式获取name server的地址，该类对应第四种，即通过http endpoint的方式来获取
+ * 具体参考该链接：http://rocketmq.apache.org/docs/best-practice-namesvr/
+ */
 public class TopAddressing {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
     private String nsAddr;
+    /**
+     * 即HTTP 链接，通过http服务获取name server 地址
+     */
     private String wsAddr;
     private String unitName;
 
@@ -45,6 +52,9 @@ public class TopAddressing {
         this.unitName = unitName;
     }
 
+    /**
+     * 格式化结果字符串
+     */
     private static String clearNewLine(final String str) {
         String newString = str.trim();
         int index = newString.indexOf("\r");
@@ -64,6 +74,11 @@ public class TopAddressing {
         return fetchNSAddr(true, 3000);
     }
 
+    /**
+     * 以http get方式获取name server 地址列表
+     * @param verbose 是否打印错误信息
+     * @param timeoutMills 获取超时时间
+     */
     public final String fetchNSAddr(boolean verbose, long timeoutMills) {
         String url = this.wsAddr;
         try {

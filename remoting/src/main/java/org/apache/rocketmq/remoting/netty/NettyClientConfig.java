@@ -18,7 +18,7 @@ package org.apache.rocketmq.remoting.netty;
 
 public class NettyClientConfig {
     /**
-     * Worker thread number
+     * netty handler中耗时任务的线程数，不是worker的数量
      */
     private int clientWorkerThreads = 4;
     private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
@@ -28,6 +28,7 @@ public class NettyClientConfig {
     private long channelNotActiveInterval = 1000 * 60;
 
     /**
+     * netty中用于心跳检测的时间间隔，当该时间内没有发生read或者write事件，则触发心跳检测
      * IdleStateEvent will be triggered when neither read nor write was performed for
      * the specified period of this time. Specify {@code 0} to disable
      */

@@ -24,6 +24,10 @@ import org.apache.rocketmq.remoting.CommandCustomHeader;
 import org.apache.rocketmq.remoting.annotation.CFNotNull;
 import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 
+/**
+ * 注册broker请求头，包含了该broker的一些基本信息，例如broker的名称、地址、所属集群的名称（一个broker集群共用一个集群名称，并且一个集群只有一个
+ * master，但可以有多个slave, master的brokerId为0，slave的brokerId大于0）
+ */
 public class RegisterBrokerRequestHeader implements CommandCustomHeader {
     @CFNotNull
     private String brokerName;
