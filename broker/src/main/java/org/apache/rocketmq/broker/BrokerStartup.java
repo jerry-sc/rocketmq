@@ -139,6 +139,7 @@ public class BrokerStartup {
                 System.exit(-2);
             }
 
+            // 验证name server格式是否正确，当前无法确定地址是否有效
             String namesrvAddr = brokerConfig.getNamesrvAddr();
             if (null != namesrvAddr) {
                 try {
@@ -170,7 +171,11 @@ public class BrokerStartup {
                     break;
             }
 
+            // 设置HA端口
             messageStoreConfig.setHaListenPort(nettyServerConfig.getListenPort() + 1);
+
+            // 日志打印开始...........................................................
+
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(lc);
@@ -198,6 +203,8 @@ public class BrokerStartup {
             MixAll.printObjectProperties(log, nettyServerConfig);
             MixAll.printObjectProperties(log, nettyClientConfig);
             MixAll.printObjectProperties(log, messageStoreConfig);
+
+            // 日志打印结束......................................................
 
             final BrokerController controller = new BrokerController(
                 brokerConfig,

@@ -47,10 +47,14 @@ import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * broker 与其他组件通信的API，内部使用netty client与其他组件通信
+ */
 public class BrokerOuterAPI {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final RemotingClient remotingClient;
     private final TopAddressing topAddressing = new TopAddressing(MixAll.getWSAddr());
+    // 上一次的name server列表
     private String nameSrvAddr = null;
 
     public BrokerOuterAPI(final NettyClientConfig nettyClientConfig) {
@@ -70,10 +74,14 @@ public class BrokerOuterAPI {
         this.remotingClient.shutdown();
     }
 
+    /**
+     * 以http服务方式获取name server地址列表
+     */
     public String fetchNameServerAddr() {
         try {
             String addrs = this.topAddressing.fetchNSAddr();
             if (addrs != null) {
+                // 由于是定时获取，所以进一步判断是否需要更新
                 if (!addrs.equals(this.nameSrvAddr)) {
                     log.info("name server address changed, old: {} new: {}", this.nameSrvAddr, addrs);
                     this.updateNameServerAddressList(addrs);
@@ -109,6 +117,7 @@ public class BrokerOuterAPI {
         final int timeoutMills) {
         RegisterBrokerResult registerBrokerResult = null;
 
+        // 获取所有的name server地址列表，这也说明了name server都是独立对等的，没有master slave之分
         List<String> nameServerAddressList = this.remotingClient.getNameServerAddressList();
         if (nameServerAddressList != null) {
             for (String namesrvAddr : nameServerAddressList) {
@@ -153,6 +162,7 @@ public class BrokerOuterAPI {
         RegisterBrokerBody requestBody = new RegisterBrokerBody();
         requestBody.setTopicConfigSerializeWrapper(topicConfigWrapper);
         requestBody.setFilterServerList(filterServerList);
+        // 将body序列化
         request.setBody(requestBody.encode());
 
         if (oneway) {

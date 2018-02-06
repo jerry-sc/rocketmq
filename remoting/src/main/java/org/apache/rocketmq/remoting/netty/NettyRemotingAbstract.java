@@ -50,6 +50,9 @@ import org.apache.rocketmq.remoting.protocol.RemotingSysResponseCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 封装使用netty通信的基类
+ */
 public abstract class NettyRemotingAbstract {
 
     /**
@@ -58,6 +61,9 @@ public abstract class NettyRemotingAbstract {
     private static final Logger log = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
 
     /**
+     * 所谓one-way就是只需要发送即可，不需要其发送结果
+     *
+     * 以下两个变量的作用是防止同时发送过多的数据
      * Semaphore to limit maximum number of on-going one-way requests, which protects system memory footprint.
      */
     protected final Semaphore semaphoreOneway;
@@ -68,6 +74,7 @@ public abstract class NettyRemotingAbstract {
     protected final Semaphore semaphoreAsync;
 
     /**
+     * 缓存所有已经发送，但是还没有得到响应的请求
      * This map caches all on-going requests.
      */
     protected final ConcurrentMap<Integer /* opaque */, ResponseFuture> responseTable =
@@ -381,8 +388,10 @@ public abstract class NettyRemotingAbstract {
                 }
             });
 
+            // 会阻塞，知道超时或者顺利得到结果
             RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMillis);
             if (null == responseCommand) {
+                // 超时错误
                 if (responseFuture.isSendRequestOK()) {
                     throw new RemotingTimeoutException(RemotingHelper.parseSocketAddressAddr(addr), timeoutMillis,
                         responseFuture.getCause());

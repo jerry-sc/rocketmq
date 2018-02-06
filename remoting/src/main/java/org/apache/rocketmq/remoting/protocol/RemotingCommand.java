@@ -31,6 +31,9 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 请求命令封装
+ */
 public class RemotingCommand {
     public static final String SERIALIZE_TYPE_PROPERTY = "rocketmq.serialize.type";
     public static final String SERIALIZE_TYPE_ENV = "ROCKETMQ_SERIALIZE_TYPE";
@@ -53,6 +56,9 @@ public class RemotingCommand {
     private static final String LONG_CANONICAL_NAME_2 = long.class.getCanonicalName();
     private static final String BOOLEAN_CANONICAL_NAME_1 = Boolean.class.getCanonicalName();
     private static final String BOOLEAN_CANONICAL_NAME_2 = boolean.class.getCanonicalName();
+    /**
+     * 该命令使用哪个版本的rocketmq生成
+     */
     private static volatile int configVersion = -1;
     private static AtomicInteger requestId = new AtomicInteger(0);
 
@@ -69,12 +75,22 @@ public class RemotingCommand {
         }
     }
 
+    /**
+     * 请求命令码
+     */
     private int code;
+    /**
+     * 该命令使用哪种语言生成
+     */
     private LanguageCode language = LanguageCode.JAVA;
     private int version = 0;
     private int opaque = requestId.getAndIncrement();
     private int flag = 0;
     private String remark;
+    /**
+     * 消息传输时，并不是直接将customHeader类序列化，而是通过反射获得该实现类的所有字段，然后添加到extFields字段中，最后对该map进行序列化
+     * 所以可以认为该map用于保存消息的头信息
+     */
     private HashMap<String, String> extFields;
     private transient CommandCustomHeader customHeader;
 
@@ -93,6 +109,9 @@ public class RemotingCommand {
         return cmd;
     }
 
+    /**
+     * 设置命令的版本信息
+     */
     private static void setCmdVersion(RemotingCommand cmd) {
         if (configVersion >= 0) {
             cmd.setVersion(configVersion);
@@ -162,6 +181,9 @@ public class RemotingCommand {
         return cmd;
     }
 
+    /**
+     * 由于低三字节表示为消息头长度
+     */
     public static int getHeaderLength(int length) {
         return length & 0xFFFFFF;
     }
@@ -208,6 +230,12 @@ public class RemotingCommand {
         return true;
     }
 
+    /**
+     * 会在消息头的最前面加上消息所用的序列化方式，用于接收端解析
+     * @param source
+     * @param type
+     * @return
+     */
     public static byte[] markProtocolType(int source, SerializeType type) {
         byte[] result = new byte[4];
 
@@ -368,6 +396,9 @@ public class RemotingCommand {
         }
     }
 
+    /**
+     *
+     */
     public void makeCustomHeaderToNet() {
         if (this.customHeader != null) {
             Field[] fields = getClazzFields(customHeader.getClass());
@@ -400,6 +431,12 @@ public class RemotingCommand {
         return encodeHeader(this.body != null ? this.body.length : 0);
     }
 
+    /**
+     * 消息头共由2部分组成，格式如下：
+     * 1. 整个消息的长度：长度+消息头+body
+     * 2. 消息头：即extFields中的信息
+     *
+     */
     public ByteBuffer encodeHeader(final int bodyLength) {
         // 1> header length size
         int length = 4;
@@ -413,6 +450,10 @@ public class RemotingCommand {
         // 3> body data length
         length += bodyLength;
 
+        /*
+         需要注意的是：这里需要多加一个4，在markProtocolType方法中会添加一个4字节的字段（最高位1个字节表示使用的是哪种序列化方式），低三个字节
+         表示消息头长度
+        */
         ByteBuffer result = ByteBuffer.allocate(4 + length - bodyLength);
 
         // length

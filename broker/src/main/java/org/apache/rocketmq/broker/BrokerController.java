@@ -108,6 +108,7 @@ public class BrokerController {
     private final SubscriptionGroupManager subscriptionGroupManager;
     private final ConsumerIdsChangeListener consumerIdsChangeListener;
     private final RebalanceLockManager rebalanceLockManager = new RebalanceLockManager();
+    // 负责broker对外通信的类, 内部封装了netty client用于通信
     private final BrokerOuterAPI brokerOuterAPI;
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
         "BrokerControllerScheduledThread"));
@@ -159,6 +160,7 @@ public class BrokerController {
         this.clientHousekeepingService = new ClientHousekeepingService(this);
         this.broker2Client = new Broker2Client(this);
         this.subscriptionGroupManager = new SubscriptionGroupManager(this);
+        // 提供对外通信支持
         this.brokerOuterAPI = new BrokerOuterAPI(nettyClientConfig);
         this.filterServerManager = new FilterServerManager(this);
 
@@ -338,12 +340,13 @@ public class BrokerController {
                 }
             }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);
 
+            // 检查name server地址，共有四种方式设置该地址，前三种对应环境变量或者编程方式设置
             if (this.brokerConfig.getNamesrvAddr() != null) {
                 this.brokerOuterAPI.updateNameServerAddressList(this.brokerConfig.getNamesrvAddr());
                 log.info("Set user specified name server address: {}", this.brokerConfig.getNamesrvAddr());
             } else if (this.brokerConfig.isFetchNamesrvAddrByAddressServer()) {
+                // 最后一种方式，通过HTTP服务的方式，获取，更加官网介绍，在生产环境中，推荐使用这种方式，因为可以做到动态添加和删除
                 this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-
                     @Override
                     public void run() {
                         try {
@@ -352,6 +355,7 @@ public class BrokerController {
                             log.error("ScheduledTask fetchNameServerAddr exception", e);
                         }
                     }
+                    // 以每2分钟访问以HTTP端点以获取和更新名称服务器地址列表，初始延迟10秒
                 }, 1000 * 10, 1000 * 60 * 2, TimeUnit.MILLISECONDS);
             }
 
@@ -678,6 +682,7 @@ public class BrokerController {
             this.filterServerManager.start();
         }
 
+        // 开始向name server注册broker 信息
         this.registerBrokerAll(true, false);
 
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -689,6 +694,7 @@ public class BrokerController {
                 } catch (Throwable e) {
                     log.error("registerBrokerAll Exception", e);
                 }
+                // 定期向name server 注册broker的所有信息
             }
         }, 1000 * 10, 1000 * 30, TimeUnit.MILLISECONDS);
 
@@ -701,9 +707,15 @@ public class BrokerController {
         }
     }
 
+    /**
+     * broker会定时向所有name server注册当前的broker信息
+     * @param checkOrderConfig
+     * @param oneway
+     */
     public synchronized void registerBrokerAll(final boolean checkOrderConfig, boolean oneway) {
         TopicConfigSerializeWrapper topicConfigWrapper = this.getTopicConfigManager().buildTopicConfigSerializeWrapper();
 
+        // 检查topic所支持的权限
         if (!PermName.isWriteable(this.getBrokerConfig().getBrokerPermission())
             || !PermName.isReadable(this.getBrokerConfig().getBrokerPermission())) {
             ConcurrentHashMap<String, TopicConfig> topicConfigTable = new ConcurrentHashMap<String, TopicConfig>();
