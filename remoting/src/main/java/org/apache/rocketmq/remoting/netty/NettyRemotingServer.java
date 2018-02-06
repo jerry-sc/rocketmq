@@ -65,14 +65,22 @@ import org.slf4j.LoggerFactory;
 public class NettyRemotingServer extends NettyRemotingAbstract implements RemotingServer {
     private static final Logger log = LoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
     private final ServerBootstrap serverBootstrap;
+    // netty worker thread
     private final EventLoopGroup eventLoopGroupSelector;
+    // netty boss thread
     private final EventLoopGroup eventLoopGroupBoss;
     private final NettyServerConfig nettyServerConfig;
 
+    // TODO
     private final ExecutorService publicExecutor;
+
+    // 处理netty channel相关的监听器
     private final ChannelEventListener channelEventListener;
 
+    // 定期性扫描与处理过期请求
     private final Timer timer = new Timer("ServerHouseKeepingService", true);
+
+    // 用于netty handler中处理耗时的任务的线程，防止阻塞IO线程
     private DefaultEventExecutorGroup defaultEventExecutorGroup;
 
     private RPCHook rpcHook;
@@ -209,6 +217,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         }
 
         try {
+            // 启动服务端，开始接受请求
             ChannelFuture sync = this.serverBootstrap.bind().sync();
             InetSocketAddress addr = (InetSocketAddress) sync.channel().localAddress();
             this.port = addr.getPort();
@@ -220,6 +229,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
             this.nettyEventExecutor.start();
         }
 
+        // 定期扫描过期的请求
         this.timer.scheduleAtFixedRate(new TimerTask() {
 
             @Override

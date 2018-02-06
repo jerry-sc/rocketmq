@@ -81,6 +81,7 @@ public abstract class NettyRemotingAbstract {
         new HashMap<Integer, Pair<NettyRequestProcessor, ExecutorService>>(64);
 
     /**
+     * 当netty发生监听的事件后，会交给此线程来处理，具体执行逻辑，在ChannelEventListener中已经定义
      * Executor to feed netty events to user defined {@link ChannelEventListener}.
      */
     protected final NettyEventExecutor nettyEventExecutor = new NettyEventExecutor();
@@ -488,6 +489,10 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
+    /**
+     * 处理netty中 channel有关的事件，例如channel断开、异常等情况，出现时，交给响应的监听器处理，例如当channel断开的时候，需要相应
+     * 的处理name server中对该channel的路由信息的处理
+     */
     class NettyEventExecutor extends ServiceThread {
         private final LinkedBlockingQueue<NettyEvent> eventQueue = new LinkedBlockingQueue<NettyEvent>();
         private final int maxSize = 10000;

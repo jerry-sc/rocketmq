@@ -18,6 +18,9 @@ package org.apache.rocketmq.remoting;
 
 import io.netty.channel.Channel;
 
+/**
+ * 监听关于netty channel的相关事件的监听器
+ */
 public interface ChannelEventListener {
     void onChannelConnect(final String remoteAddr, final Channel channel);
 

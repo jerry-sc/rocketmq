@@ -45,6 +45,7 @@ public class NamesrvController {
 
     private final NettyServerConfig nettyServerConfig;
 
+    // 执行一些定期任务：例如打印KV信息，扫描broker等
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
         "NSScheduledThread"));
     private final KVConfigManager kvConfigManager;
@@ -82,6 +83,7 @@ public class NamesrvController {
 
         this.registerProcessor();
 
+        // todo
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -95,7 +97,7 @@ public class NamesrvController {
 
             @Override
             public void run() {
-                // 每隔10s答应KV信息
+                // 每隔10s打印KV信息
                 NamesrvController.this.kvConfigManager.printAllPeriodically();
             }
         }, 1, 10, TimeUnit.MINUTES);

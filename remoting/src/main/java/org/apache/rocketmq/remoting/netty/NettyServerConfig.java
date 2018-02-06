@@ -18,8 +18,11 @@ package org.apache.rocketmq.remoting.netty;
 
 public class NettyServerConfig implements Cloneable {
     private int listenPort = 8888;
+    // 不是netty中work概念的线程数量，而是handler中处理耗时任务的线程数量
     private int serverWorkerThreads = 8;
+    // TODO
     private int serverCallbackExecutorThreads = 0;
+    // 该字段才是netty中worker概念的线程数量
     private int serverSelectorThreads = 3;
     // TODO
     private int serverOnewaySemaphoreValue = 256;

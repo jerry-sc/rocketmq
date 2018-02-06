@@ -54,6 +54,8 @@
             <charset class="java.nio.charset.Charset">UTF-8</charset>
         </encoder>
     </appender>
+    <!-- 异步刷新日志记录器，日志记录时将新来日志放入队列中，交给其他线程处理，默认队列大小为256，如果超过了将会删除等级较低的日志 -->
+    <!-- 由discardingThreshold控制多少阙值后触发删除操作 http://blog.csdn.net/zhuyucheng123/article/details/21524549 -->
     <appender name="RocketmqNamesrvAppender" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="RocketmqNamesrvAppender_inner"/>
         <discardingThreshold>0</discardingThreshold>
@@ -70,20 +72,24 @@
     <logger name="RocketmqNamesrv" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="RocketmqNamesrvAppender"/>
+        <appender-ref ref="STDOUT"/>
     </logger>
 
     <logger name="RocketmqCommon" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="RocketmqNamesrvAppender"/>
+        <appender-ref ref="STDOUT"/>
     </logger>
 
     <logger name="RocketmqRemoting" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="RocketmqNamesrvAppender"/>
+        <appender-ref ref="STDOUT"/>
     </logger>
 
     <root>
         <level value="INFO"/>
         <appender-ref ref="DefaultAppender"/>
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
